@@ -1,69 +1,156 @@
-import re
+import ply.lex as lex
 
-RESERVADAS = {
-    "elgio", "numero", "NADA", "NEG", "EXP",
-    "enquanto", "se", "entao", "senao", "para",
-    "inicio", "fim",
-    "maior", "menor", "igual", "diferente", "migual", "Migual"
+# =========================
+# PALAVRAS RESERVADAS
+# =========================
+
+reservadas = {
+    'elgio': 'ELGIO',
+    'numero': 'NUMERO_TIPO',
+    'NADA': 'NADA',
+    'NEG': 'NEG',
+    'EXP': 'EXP',
+    'enquanto': 'ENQUANTO',
+    'se': 'SE',
+    'entao': 'ENTAO',
+    'senao': 'SENAO',
+    'para': 'PARA',
+    'inicio': 'INICIO',
+    'fim': 'FIM',
+    'maior': 'MAIOR',
+    'menor': 'MENOR',
+    'igual': 'IGUAL',
+    'diferente': 'DIFERENTE',
+    'migual': 'MIGUAL',
+    'Migual': 'MIGUAL2'
 }
 
-OPERADORES = {"=", "EXP", "%", "+", "-", "/", "x"}
-SIMBOLOS = {"(", ")", ".", ","}
+# =========================
+# TOKENS
+# =========================
 
-def is_identificador(token):
-    return re.match(r'^[A-Z][a-zA-Z]{2,}[a-z]$', token)
+tokens = [
+    'IDENTIFICADOR',
+    'FUNCAO',
+    'NUMERO',
 
-def is_funcao(token):
-    return re.match(r'^_[A-Z][a-zA-Z]{2,}[a-z]$', token)
+    'IGUAL_OP',
+    'MOD',
+    'MAIS',
+    'MENOS',
+    'DIV',
+    'MULT',
 
-def is_numero(token):
-    return re.match(r'^[1-9][0-9]*$', token)
+    'LPAREN',
+    'RPAREN',
+    'PONTO',
+    'VIRGULA'
+] + list(reservadas.values())
 
-def analisar_linha(linha):
-    tokens = []
-    
-    # remover comentário
-    linha = linha.split('*')[0]
+# =========================
+# OPERADORES E SIMBOLOS
+# =========================
 
-    partes = linha.replace("(", " ( ").replace(")", " ) ") \
-                  .replace(".", " . ").replace(",", " , ").split()
+t_IGUAL_OP = r'='
+t_MOD = r'%'
+t_MAIS = r'\+'
+t_MENOS = r'-'
+t_DIV = r'/'
+t_MULT = r'x'
 
-    for token in partes:
-        if token in RESERVADAS:
-            tokens.append(("RESERVADA", token))
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
+t_PONTO = r'\.'
+t_VIRGULA = r','
 
-        elif token in OPERADORES:
-            tokens.append(("OPERADOR", token))
+# =========================
+# IGNORAR ESPAÇOS
+# =========================
 
-        elif token in SIMBOLOS:
-            tokens.append(("SIMBOLO", token))
+t_ignore = ' \t'
 
-        elif is_funcao(token):
-            tokens.append(("FUNCAO", token))
+# =========================
+# COMENTÁRIOS
+# =========================
 
-        elif is_identificador(token):
-            tokens.append(("IDENTIFICADOR", token))
+def t_COMENTARIO(t):
+    r'\*.*'
+    pass
 
-        elif is_numero(token):
-            tokens.append(("NUMERO", token))
+# =========================
+# FUNÇÕES
+# =========================
 
-        else:
-            tokens.append(("ERRO", token))
+def t_FUNCAO(t):
+    r'_[A-Z][a-zA-Z]{2,}[a-z]'
+    return t
 
-    return tokens
+# =========================
+# IDENTIFICADORES E RESERVADAS
+# =========================
 
+def t_IDENTIFICADOR(t):
+    r'[A-Z][a-zA-Z]{2,}[a-z]'
 
-def analisar_codigo(codigo):
-    for i, linha in enumerate(codigo.split('\n'), 1):
-        tokens = analisar_linha(linha)
-        print(f"Linha {i}: {tokens}")
+    if t.value in reservadas:
+        t.type = reservadas[t.value]
 
+    return t
 
+# =========================
+# NÚMEROS
+# =========================
+
+def t_NUMERO(t):
+    r'[1-9][0-9]*'
+    return t
+
+# =========================
+# QUEBRA DE LINHA
+# =========================
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
+
+# =========================
+# ERROS
+# =========================
+
+def t_error(t):
+    print(f"Erro léxico: caractere inválido '{t.value[0]}'")
+    t.lexer.skip(1)
+
+# =========================
+# BUILD DO LEXER
+# =========================
+
+lexer = lex.lex()
+
+# =========================
 # TESTE
+# =========================
+
 codigo = """
+* Linguagem Elgol
+
 numero Teste .
+
 Lixo = 34 .
+
 NEG Lixo .
+
+numero _Soma (numero Numm, numero Doiss) .
+
+Teste = 3 EXP 4 .
 """
 
-analisar_codigo(codigo)
+lexer.input(codigo)
+
+while True:
+    tok = lexer.token()
+
+    if not tok:
+        break
+
+    print(tok)
