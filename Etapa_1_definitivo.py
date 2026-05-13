@@ -81,7 +81,7 @@ def t_COMENTARIO(t):
 # IDENTIFICADORES E RESERVADAS
 # =========================
 
-def t_PALAVRA(t):
+def t_IDENTIFICADOR(t):
     r'[A-Za-z_][A-Za-z_]*'
 
     # Reservadas
