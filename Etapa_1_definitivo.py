@@ -78,25 +78,29 @@ def t_COMENTARIO(t):
     pass
 
 # =========================
-# FUNÇÕES
-# =========================
-
-def t_FUNCAO(t):
-    r'_[A-Z][a-zA-Z]{2,}[a-z]'
-    return t
-
-# =========================
 # IDENTIFICADORES E RESERVADAS
 # =========================
 
-def t_IDENTIFICADOR(t):
-    r'[A-Z][a-zA-Z]{2,}[a-z]'
+def t_PALAVRA(t):
+    r'[A-Za-z_][A-Za-z_]*'
 
+    # Reservadas
     if t.value in reservadas:
         t.type = reservadas[t.value]
+        return t
 
-    return t
+    # Funções
+    if t.value.startswith('_'):
+        if len(t.value) >= 5 and t.value[1].isupper() and t.value[-1].islower() and t.value[1:].isalpha():
+            t.type = 'FUNCAO'
+            return t
 
+    # Identificadores
+    if len(t.value) >= 4 and t.value[0].isupper() and t.value[-1].islower() and t.value.isalpha():
+        t.type = 'IDENTIFICADOR'
+        return t
+
+    print(f"Erro léxico: token inválido '{t.value}'")
 # =========================
 # NÚMEROS
 # =========================
