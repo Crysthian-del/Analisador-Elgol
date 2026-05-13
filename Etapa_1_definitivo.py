@@ -101,6 +101,7 @@ def t_PALAVRA(t):
         return t
 
     print(f"Erro léxico: token inválido '{t.value}'")
+    
 # =========================
 # NÚMEROS
 # =========================
